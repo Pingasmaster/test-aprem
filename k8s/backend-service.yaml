@@ -1,0 +1,15 @@
+# service clusterip backend, accès interne uniquement
+# clusterip : pas exposé à l'extérieur, seulement accessible via l'ingress
+apiVersion: v1
+kind: Service
+metadata:
+  name: vitalsync-backend-svc
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: vitalsync-backend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000

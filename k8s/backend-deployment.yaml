@@ -1,0 +1,49 @@
+# déploiement backend, 2 réplicas
+# 2 réplicas : haute dispo sans sur-engager les ressources
+# 1 = pas de tolérance à la panne, 3+ = gaspillage pour ce contexte
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vitalsync-backend
+  namespace: default
+  labels:
+    app: vitalsync-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vitalsync-backend
+  template:
+    metadata:
+      labels:
+        app: vitalsync-backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/pingasmaster/vitalsync-backend:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: port_api
+              value: "3000"
+            # secret via valueFrom, jamais en clair
+            - name: cle_bdd
+              valueFrom:
+                secretKeyRef:
+                  name: secret-bdd
+                  key: cle_bdd
+          # sonde de vivacité : k8s redémarre le pod si /health échoue 3 fois
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3
+          # sonde de disponibilité : pod sorti du lb si pas prêt
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
