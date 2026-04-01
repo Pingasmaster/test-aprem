@@ -1,0 +1,113 @@
+# pipeline ci/cd vitalsync : 3 étapes, lint+tests, build+push, staging
+name: ci-cd vitalsync
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [main]
+
+env:
+  # images sur ghcr, natif github, auth via GITHUB_TOKEN
+  image_backend: ghcr.io/${{ github.repository_owner }}/vitalsync-backend
+  image_frontend: ghcr.io/${{ github.repository_owner }}/vitalsync-frontend
+
+jobs:
+  # étape 1 : qualité du code
+  lint-et-tests:
+    name: lint et tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: installation dépendances
+        run: npm ci
+
+      - name: lint eslint
+        run: npm run lint
+
+      - name: tests jest
+        run: npm test
+
+  # étape 2 : build + push images, uniquement sur push
+  build-images:
+    name: build et push images
+    runs-on: ubuntu-latest
+    needs: lint-et-tests
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      # droit d'écriture sur le registre de paquets github
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      # auth ghcr via GITHUB_TOKEN builtin, aucun secret supplémentaire
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # tag sha-<commit>, traçabilité complète, pas de 'latest' ambigu
+      - id: meta_backend
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.image_backend }}
+          tags: type=sha,prefix=sha-
+
+      - id: meta_frontend
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.image_frontend }}
+          tags: type=sha,prefix=sha-
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: backend
+          push: true
+          tags: ${{ steps.meta_backend.outputs.tags }}
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: frontend
+          push: true
+          tags: ${{ steps.meta_frontend.outputs.tags }}
+
+  # étape 3 : déploiement staging simulé, health check obligatoire
+  deploy-staging:
+    name: déploiement staging
+    runs-on: ubuntu-latest
+    needs: build-images
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v6
+
+      # injection du secret, jamais en clair dans le yaml
+      - name: création env staging
+        run: |
+          printf 'utilisateur_bdd=vitalsync_user\ncle_bdd=%s\nnom_bdd=vitalsync_db\nport_api=3000\nport_web=8080\n' \
+            "${{ secrets.cle_bdd }}" > .env
+
+      - name: démarrage compose staging
+        run: docker compose up -d --build
+
+      # si /health échoue, la pipeline s'arrête : on ne déploie pas du cassé
+      # --retry-connrefused : attend que le port soit ouvert (postgres peut être long)
+      - name: health check backend
+        run: curl --fail --retry 12 --retry-delay 5 --retry-connrefused http://localhost:3000/health
+
+      - name: teardown
+        if: always()
+        run: docker compose down -v
