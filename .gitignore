@@ -1,0 +1,8 @@
+# dépendances node
+node_modules/
+
+# secrets locaux
+.env
+
+# couverture jest
+coverage/
