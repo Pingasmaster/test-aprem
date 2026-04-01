@@ -1,0 +1,8 @@
+# pas en image — reconstruit par npm ci
+node_modules
+# résultats de tests — inutiles en prod
+coverage
+# secrets — ne jamais embarquer
+.env
+# logs parasites
+npm-debug.log
