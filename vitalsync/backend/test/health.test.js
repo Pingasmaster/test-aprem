@@ -15,3 +15,12 @@ describe('endpoint /health', () => {
     expect(rep.body.statut).toBe('ok');
   });
 });
+
+describe('endpoint /api/activities', () => {
+  // liste présente
+  test('retourne une liste', async () => {
+    const rep = await request(app).get('/api/activities');
+    expect(rep.status).toBe(200);
+    expect(Array.isArray(rep.body.activites)).toBe(true);
+  });
+});
