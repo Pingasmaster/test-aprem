@@ -1,8 +1,8 @@
-# pas en image — reconstruit par npm ci
+# reconstruit par npm ci
 node_modules
-# résultats de tests — inutiles en prod
+
+# artefacts de tests
 coverage
-# secrets — ne jamais embarquer
+
+# secrets
 .env
-# logs parasites
-npm-debug.log

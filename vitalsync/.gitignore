@@ -1,21 +1,8 @@
-# dépendances node — jamais versionnées
+# dépendances node
 node_modules/
 
-# variables d'environnement sensibles
+# secrets locaux
 .env
-.env.local
-.env.*.local
 
-# logs npm
-npm-debug.log*
-*.log
-
-# couverture de tests
+# couverture jest
 coverage/
-
-# artefacts de build
-dist/
-
-# fichiers système
-.DS_Store
-Thumbs.db
