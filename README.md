@@ -1,6 +1,6 @@
 # VitalSync
 
-Suivi médical et sportif — application fullstack conteneurisée avec chaîne CI/CD complète.
+Suivi médical et sportif: application fullstack conteneurisée avec chaîne CI/CD complète.
 
 ## Architecture
 
@@ -36,9 +36,9 @@ curl http://localhost:3000/health
 ## Structure des branches (Gitflow)
 
 ```
-main      ← production, protégée (PR obligatoire)
-develop   ← intégration, déclenche la CI à chaque push
-feature/* ← fonctionnalités isolées
+main       production, protégée (PR obligatoire)
+develop    intégration, déclenche la CI à chaque push
+feature/*  fonctionnalités isolées
 ```
 
 ## Pipeline CI/CD
@@ -48,7 +48,7 @@ Fichier : `.github/workflows/ci-cd.yml`
 | étape | déclencheur | contenu |
 |-------|-------------|---------|
 | lint et tests | push develop + PR main | ESLint v9 + Jest |
-| build et push | push develop uniquement | images Docker → GHCR, tag `sha-<commit>` |
+| build et push | push develop uniquement | images Docker envoyée vers le GHCR, tag `sha-<commit>` |
 | staging | push develop uniquement | `docker compose up`, health check `/health` |
 
 ## Variables d'environnement
