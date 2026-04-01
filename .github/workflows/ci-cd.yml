@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: vitalsync/backend
+        working-directory: backend
     steps:
       - uses: actions/checkout@v6
 
@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: vitalsync/backend/package-lock.json
+          cache-dependency-path: backend/package-lock.json
 
       - name: installation dépendances
         run: npm ci
@@ -74,13 +74,13 @@ jobs:
 
       - uses: docker/build-push-action@v7
         with:
-          context: vitalsync/backend
+          context: backend
           push: true
           tags: ${{ steps.meta_backend.outputs.tags }}
 
       - uses: docker/build-push-action@v7
         with:
-          context: vitalsync/frontend
+          context: frontend
           push: true
           tags: ${{ steps.meta_frontend.outputs.tags }}
 
@@ -98,10 +98,10 @@ jobs:
       - name: création env staging
         run: |
           printf 'utilisateur_bdd=vitalsync_user\ncle_bdd=%s\nnom_bdd=vitalsync_db\nport_api=3000\nport_web=8080\n' \
-            "${{ secrets.cle_bdd }}" > vitalsync/.env
+            "${{ secrets.cle_bdd }}" > .env
 
       - name: démarrage compose staging
-        run: docker compose -f vitalsync/docker-compose.yml up -d --build
+        run: docker compose up -d --build
 
       # si /health échoue, la pipeline s'arrête : on ne déploie pas du cassé
       # --retry-connrefused : attend que le port soit ouvert (postgres peut être long)
@@ -110,4 +110,4 @@ jobs:
 
       - name: teardown
         if: always()
-        run: docker compose -f vitalsync/docker-compose.yml down -v
+        run: docker compose down -v
