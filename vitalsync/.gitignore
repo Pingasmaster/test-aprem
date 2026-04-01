@@ -1,0 +1,21 @@
+# dépendances node — jamais versionnées
+node_modules/
+
+# variables d'environnement sensibles
+.env
+.env.local
+.env.*.local
+
+# logs npm
+npm-debug.log*
+*.log
+
+# couverture de tests
+coverage/
+
+# artefacts de build
+dist/
+
+# fichiers système
+.DS_Store
+Thumbs.db
