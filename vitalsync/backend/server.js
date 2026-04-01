@@ -7,7 +7,7 @@ const port = process.env.port_api || 3000;
 // json activé
 app.use(express.json());
 
-// santé complète — fusion : service + version + horodatage
+// santé complète, fusion : service + version + horodatage
 app.get('/health', (req, res) => {
   res.json({ statut: 'ok', service: 'activites', version: '1.0.0', horodatage: new Date().toISOString() });
 });

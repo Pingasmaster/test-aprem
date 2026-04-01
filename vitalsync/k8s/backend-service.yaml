@@ -1,4 +1,4 @@
-# service clusterip backend — accès interne uniquement
+# service clusterip backend, accès interne uniquement
 # clusterip : le backend n'est pas exposé à l'extérieur, seulement via l'ingress
 apiVersion: v1
 kind: Service

@@ -1,4 +1,4 @@
-# pipeline ci/cd vitalsync — 3 étapes : lint+tests, build+push, staging
+# pipeline ci/cd vitalsync : 3 étapes, lint+tests, build+push, staging
 name: ci-cd vitalsync
 
 on:
@@ -8,7 +8,7 @@ on:
     branches: [main]
 
 env:
-  # images sur ghcr — natif github, auth via GITHUB_TOKEN
+  # images sur ghcr, natif github, auth via GITHUB_TOKEN
   image_backend: ghcr.io/${{ github.repository_owner }}/vitalsync-backend
   image_frontend: ghcr.io/${{ github.repository_owner }}/vitalsync-frontend
 
@@ -38,7 +38,7 @@ jobs:
       - name: tests jest
         run: npm test
 
-  # étape 2 : build + push images — uniquement sur push (pas sur PR)
+  # étape 2 : build + push images, uniquement sur push
   build-images:
     name: build et push images
     runs-on: ubuntu-latest
@@ -52,14 +52,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # auth ghcr via GITHUB_TOKEN builtin — aucun secret supplémentaire
+      # auth ghcr via GITHUB_TOKEN builtin, aucun secret supplémentaire
       - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # tag sha-<commit> — traçabilité complète, pas de 'latest' ambigu
+      # tag sha-<commit>, traçabilité complète, pas de 'latest' ambigu
       - id: meta_backend
         uses: docker/metadata-action@v6
         with:
@@ -84,7 +84,7 @@ jobs:
           push: true
           tags: ${{ steps.meta_frontend.outputs.tags }}
 
-  # étape 3 : déploiement staging simulé — health check obligatoire
+  # étape 3 : déploiement staging simulé, health check obligatoire
   deploy-staging:
     name: déploiement staging
     runs-on: ubuntu-latest
@@ -94,7 +94,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # injection du secret — jamais en clair dans le fichier yaml
+      # injection du secret, jamais en clair dans le yaml
       - name: création env staging
         run: |
           printf 'utilisateur_bdd=vitalsync_user\ncle_bdd=%s\nnom_bdd=vitalsync_db\nport_api=3000\nport_web=8080\n' \
@@ -106,7 +106,7 @@ jobs:
       - name: attente démarrage
         run: sleep 20
 
-      # si /health ne répond pas 200, la pipeline échoue — on ne déploie pas du cassé
+      # si /health échoue, la pipeline s'arrête : on ne déploie pas du cassé
       - name: health check backend
         run: curl --fail --retry 5 --retry-delay 5 http://localhost:3000/health
 

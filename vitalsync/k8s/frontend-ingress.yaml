@@ -1,6 +1,6 @@
-# ingress frontend — point d'entrée unique
+# ingress frontend, point d'entrée unique
 # ingress choisi vs nodeport : routing l7, tls natif, un seul port 80/443
-# nodeport expose directement le nœud sur un port aléatoire — moins propre en prod
+# nodeport expose le nœud directement sur un port aléatoire, moins propre en prod
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
