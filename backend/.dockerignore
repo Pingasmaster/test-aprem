@@ -1,0 +1,8 @@
+# reconstruit par npm ci
+node_modules
+
+# artefacts de tests
+coverage
+
+# secrets
+.env

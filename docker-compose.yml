@@ -1,0 +1,55 @@
+# orchestration locale, pas de champ 'version', obsolète en compose v2
+services:
+  backend:
+    build: ./backend
+    container_name: vitalsync_backend
+    environment:
+      - port_api=${port_api:-3000}
+      - hote_bdd=db
+      - utilisateur_bdd=${utilisateur_bdd}
+      - cle_bdd=${cle_bdd}
+      - nom_bdd=${nom_bdd}
+    ports:
+      - "${port_api:-3000}:3000"
+    depends_on:
+      db:
+        # attend que postgres soit prêt avant de démarrer
+        condition: service_healthy
+    networks: [reseau_vitalsync]
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: vitalsync_frontend
+    ports:
+      - "${port_web:-80}:80"
+    depends_on: [backend]
+    networks: [reseau_vitalsync]
+    restart: unless-stopped
+
+  db:
+    image: postgres:17
+    container_name: vitalsync_db
+    environment:
+      - POSTGRES_USER=${utilisateur_bdd}
+      - POSTGRES_PASSWORD=${cle_bdd}
+      - POSTGRES_DB=${nom_bdd}
+    volumes:
+      # les données survivent à docker compose down
+      - donnees_vitales:/var/lib/postgresql/data
+    networks: [reseau_vitalsync]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${utilisateur_bdd} -d ${nom_bdd}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+# réseau bridge dédié, isole du réseau docker par défaut
+networks:
+  reseau_vitalsync:
+    driver: bridge
+
+# volume nommé, persistance entre redémarrages
+volumes:
+  donnees_vitales:
