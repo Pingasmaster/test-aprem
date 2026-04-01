@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>vitalsync</title>
+  <style>
+    /* style minimal */
+    body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+    h1 { color: #2c3e50; }
+    #statut { padding: 10px; border-radius: 4px; margin-top: 20px; font-weight: bold; }
+    .ok { background: #d4edda; color: #155724; }
+    .erreur { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+  <h1>VitalSync</h1>
+  <p>Surveillance des signes vitaux</p>
+  <button onclick="verifier_sante()">vérifier l'état du backend</button>
+  <div id="statut"></div>
+  <script>
+    // appel api santé
+    async function verifier_sante() {
+      const el = document.getElementById('statut');
+      try {
+        const rep = await fetch('/api/health');
+        const donnees = await rep.json();
+        el.textContent = `statut : ${donnees.statut}`;
+        el.className = 'ok';
+      } catch (e) {
+        el.textContent = 'backend inaccessible';
+        el.className = 'erreur';
+      }
+    }
+  </script>
+</body>
+</html>
